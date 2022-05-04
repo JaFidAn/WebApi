@@ -17,18 +17,29 @@ namespace WebApi.Controllers
             return _students;
         }
 
+        [HttpGet("student/{id}")]
+        public IActionResult GetStudent(int id)
+        {
+            var student = _students.FirstOrDefault(student => student.Id == id);
+            if (student == null)
+            {
+                return NotFound();
+            }
+            return Ok(student);
+        }
+
         [HttpPost("create")]
-        public Student CreateStudent(Student student)
+        public IActionResult CreateStudent(Student student)
         {
             _students.Add(student);
-            return student;
+            return Created($"/api/student/student/{student.Id}", student);
         }
 
         [HttpPut("update")]
         public Student UpdateStudent(int id, Student newStudent)
         {
-            var studend = _students.FirstOrDefault(student => student.Id == id);
-            studend.Name = newStudent.Name;
+            var student = _students.FirstOrDefault(student => student.Id == id);
+            student.Name = newStudent.Name;
             return newStudent;
         }
 
