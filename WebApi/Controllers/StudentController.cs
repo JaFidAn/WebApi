@@ -9,7 +9,33 @@ namespace WebApi.Controllers
     [Route("api/[controller]")]
     public class StudentController : Controller
     {
+        private readonly ISingletonOperation _singletonOperation;
+        private readonly ITransientOperation _transientOperation;
+        private readonly IScopedOperation _scopedOperation;
+        public StudentController(
+            ISingletonOperation singletonOperation, 
+            ITransientOperation transientOperation,
+            IScopedOperation scopedOperation)
+        {
+            _singletonOperation = singletonOperation;
+            _transientOperation = transientOperation;
+            _scopedOperation = scopedOperation;
+        }
         private static List<Student> _students = new List<Student>();
+
+
+        [HttpGet("Guid")]
+        public object GetGuids()
+        {
+            var data = new
+            {
+                SingletonOperation = _singletonOperation.Id,
+                TransientOperation = _transientOperation.Id,
+                ScopedOperation = _scopedOperation.Id,
+            };
+            return data;
+        }
+
 
         [HttpGet("all")]
         public List<Student> GetAll()

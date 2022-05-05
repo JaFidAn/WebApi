@@ -32,6 +32,9 @@ namespace WebApi
             {
                 c.SwaggerDoc("v1", new OpenApiInfo { Title = "WebApi", Version = "v1" });
             });
+            services.AddSingleton<ISingletonOperation, Operation > ();
+            services.AddTransient<ITransientOperation, Operation> ();
+            services.AddScoped<IScopedOperation, Operation> ();
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
