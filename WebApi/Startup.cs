@@ -13,6 +13,8 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using WebApi.Data;
+using WebApi.Repository;
+using WebApi.UnitOFWorks;
 
 namespace WebApi
 {
@@ -40,6 +42,10 @@ namespace WebApi
 
             services.AddDbContext<StudentDbContext>(option =>
             option.UseSqlServer(Configuration.GetConnectionString("Default")));
+
+            services.AddTransient<IStudentRepository, StudentRepository> ();
+            services.AddTransient(typeof(IRepository<,>), typeof(EfRepository<,>));
+            services.AddTransient<IUnitOfWork, UnitOfWork>();
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.

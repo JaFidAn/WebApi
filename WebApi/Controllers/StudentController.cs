@@ -1,11 +1,10 @@
 ﻿using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
 using System.Collections.Generic;
-using System.Linq;
 using System.Threading.Tasks;
-using WebApi.Data;
 using WebApi.Data.Entities;
 using WebApi.Models;
+using WebApi.Repository;
+using WebApi.UnitOFWorks;
 
 namespace WebApi.Controllers
 {
@@ -16,18 +15,19 @@ namespace WebApi.Controllers
         private readonly ISingletonOperation _singletonOperation;
         private readonly ITransientOperation _transientOperation;
         private readonly IScopedOperation _scopedOperation;
-        private readonly StudentDbContext _studentDbContext;
+        private readonly IUnitOfWork _unitOfWork;
+        
         public StudentController(
             ISingletonOperation singletonOperation, 
             ITransientOperation transientOperation,
             IScopedOperation scopedOperation,
-            StudentDbContext studentDbContext)
+            IUnitOfWork unitOfWork)
+            
         {
             _singletonOperation = singletonOperation;
             _transientOperation = transientOperation;
             _scopedOperation = scopedOperation;
-            _studentDbContext = studentDbContext;
-
+            _unitOfWork = unitOfWork;
         }
         private static List<StudentModel> _students = new List<StudentModel>();
 
@@ -46,16 +46,56 @@ namespace WebApi.Controllers
 
 
         [HttpGet("all")]
-        public async Task<List<Student>> GetAll()
+        public async Task<object> GetAll()
         {
-            var list = await _studentDbContext.Students.ToListAsync();
+            var list = await _unitOfWork.StudentRepository.GetAllList();
+
             return list;
         }
+
+        //[HttpGet("studendCourseReport")]
+        //public async Task<object> GetReport()
+        //{
+        //    var query = from sc in _studentDbContext.StudentCourses
+        //                join s in _studentDbContext.Students on sc.StudentId equals s.Id
+        //                join c in _studentDbContext.Courses on sc.CourseId equals c.Id
+        //                join g in _studentDbContext.Genders on s.GenderId equals g.Id
+        //                select new
+        //                {
+        //                    s.Name,
+        //                    s.Surname,
+        //                    s.DateOfBirth,
+        //                    Gender = g.Name,
+        //                    CourseName = c.Name,
+        //                    sc.StartDate,
+        //                    sc.EndDate
+        //                };
+        //    return await query.ToListAsync();
+        //}
+
+        //[HttpGet("genders")]
+        //public async Task<object> GetGenders()
+        //{
+        //    var list = await _studentDbContext.Genders.Include(g => g.Students)
+        //        .Select(g => new
+        //        {
+        //            g.Name,
+        //            Students = g.Students.Select(s => new
+        //            {
+        //                s.Name,
+        //                s.Surname,
+        //                s.DateOfBirth,
+        //                s.Sallary
+        //            })
+        //        }).ToListAsync();
+
+        //    return list;
+        //}
 
         [HttpGet("student/{id}")]
         public async Task<IActionResult> GetStudent(int id)
         {
-            var student = await _studentDbContext.Students.FirstOrDefaultAsync(s=>s.Id == id);
+            var student = await _unitOfWork.StudentRepository.Find(id);
             if (student == null)
             {
                 return NotFound();
@@ -66,32 +106,35 @@ namespace WebApi.Controllers
         [HttpPost("create")]
         public async Task<IActionResult> CreateStudent(Student student)
         {
-            await _studentDbContext.Students.AddAsync(student);
-            await _studentDbContext.SaveChangesAsync();
+            await _unitOfWork.StudentRepository.Add(student);
+            await _unitOfWork.Commit();
+
             return Created($"/api/student/student/{student.Id}", student);
         }
 
         [HttpPut("update")]
         public  async Task<Student> UpdateStudent(int id, Student newStudent)
         {
-            var student = await _studentDbContext.Students.FirstOrDefaultAsync(student => student.Id == id);
+            var student = await _unitOfWork.StudentRepository.Find(id);
             student.Name = newStudent.Name;
             student.Surname = newStudent.Surname;
             student.DateOfBirth = newStudent.DateOfBirth;
             student.Sallary = newStudent.Sallary;
             student.Gender = newStudent.Gender;
 
-            await _studentDbContext.SaveChangesAsync();
+             _unitOfWork.StudentRepository.Update(student);
+            await _unitOfWork.Commit();
 
-            return newStudent;
+            return student;
         }
 
         [HttpDelete("delete")]
         public async Task<Student> DeleteStudent(int id)
         {
-            var student = await _studentDbContext.Students.FirstOrDefaultAsync(student => student.Id == id);
-            _studentDbContext.Students.Remove(student);
-            await _studentDbContext.SaveChangesAsync();
+            var student = await _unitOfWork.StudentRepository.Find(id);
+             _unitOfWork.StudentRepository.Delete(student);
+            await _unitOfWork.Commit();
+
             return student;
         }
     }
