@@ -6,6 +6,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using WebApi.Data.Entities;
+using WebApi.Helpers;
 using WebApi.Models;
 using WebApi.Repository;
 using WebApi.UnitOFWorks;
@@ -53,8 +54,11 @@ namespace WebApi.Controllers
 
 
         [HttpGet("all")]
+        [MyAutorize]
         public async Task<object> GetAll()
         {
+            //var user = HttpContext.User;
+
             _logger.LogInformation("Reques accepted at {date}", DateTime.Now);
             var query = await _unitOfWork.StudentRepository.GetAllList();
             var result = query.ToList();
