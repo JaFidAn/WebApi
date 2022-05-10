@@ -1,5 +1,9 @@
 ﻿using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.Logging;
+using Newtonsoft.Json;
+using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Threading.Tasks;
 using WebApi.Data.Entities;
 using WebApi.Models;
@@ -16,18 +20,21 @@ namespace WebApi.Controllers
         private readonly ITransientOperation _transientOperation;
         private readonly IScopedOperation _scopedOperation;
         private readonly IUnitOfWork _unitOfWork;
+        private readonly ILogger<StudentController> _logger;
         
         public StudentController(
             ISingletonOperation singletonOperation, 
             ITransientOperation transientOperation,
             IScopedOperation scopedOperation,
-            IUnitOfWork unitOfWork)
+            IUnitOfWork unitOfWork,
+            ILogger<StudentController> logger)
             
         {
             _singletonOperation = singletonOperation;
             _transientOperation = transientOperation;
             _scopedOperation = scopedOperation;
             _unitOfWork = unitOfWork;
+            _logger = logger;
         }
         private static List<StudentModel> _students = new List<StudentModel>();
 
@@ -48,9 +55,12 @@ namespace WebApi.Controllers
         [HttpGet("all")]
         public async Task<object> GetAll()
         {
-            var list = await _unitOfWork.StudentRepository.GetAllList();
+            _logger.LogInformation("Reques accepted at {date}", DateTime.Now);
+            var query = await _unitOfWork.StudentRepository.GetAllList();
+            var result = query.ToList();
+            _logger.LogWarning("Reques successfully comleted at {date}", DateTime.Now, JsonConvert.SerializeObject(result));
 
-            return list;
+            return result;
         }
 
         //[HttpGet("studendCourseReport")]
