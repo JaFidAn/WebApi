@@ -114,8 +114,16 @@ namespace WebApi.Controllers
         }
 
         [HttpPost("create")]
-        public async Task<IActionResult> CreateStudent(Student student)
+        public async Task<IActionResult> CreateStudent(StudentModel studentModel)
         {
+            var student = new Student
+            {
+                Name = studentModel.Name,
+                Surname = studentModel.Surname,
+                DateOfBirth = studentModel.DateOfBirth,
+                Sallary = studentModel.Sallary,
+                GenderId = studentModel.GenderId,
+            };
             await _unitOfWork.StudentRepository.Add(student);
             await _unitOfWork.Commit();
 
